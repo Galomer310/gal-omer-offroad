@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Gal Omer — drive through a small desert at sunrise to see my work." />
+    <meta name="theme-color" content="#F2CFA0" />
+    <title>Gal Omer — Off-road</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="stage"></div>
+
+    <div id="loading" class="screen"><p data-t="loading"></p></div>
+
+    <!-- Intro: what this is, the controls, and a way out to the classic site. -->
+    <section id="intro" class="screen" hidden aria-labelledby="intro-title">
+      <div class="panel intro-panel">
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button type="button" class="lang-btn mono" data-lang="en">EN</button>
+          <button type="button" class="lang-btn" data-lang="he" lang="he">עברית</button>
+        </div>
+        <h1 id="intro-title" data-t="title"></h1>
+        <p class="subtitle" data-t="subtitle"></p>
+        <p data-t="intro"></p>
+        <h2 class="eyebrow" data-t="controls"></h2>
+        <ul id="keys" class="keys"></ul>
+        <div class="actions">
+          <button type="button" id="start" class="btn primary" data-t="start"></button>
+          <a class="btn classic-link" target="_blank" rel="noopener" data-t="classic"></a>
+        </div>
+        <p class="hint" data-t="classicHint"></p>
+      </div>
+    </section>
+
+    <!-- Heads-up display -->
+    <header id="hud" hidden>
+      <div class="who">
+        <b data-t="title"></b>
+        <span data-t="subtitle"></span>
+      </div>
+      <nav class="tools">
+        <button type="button" id="btn-map" class="tool" data-t-label="map">M</button>
+        <button type="button" id="btn-achv" class="tool" data-t-label="achievements">★</button>
+        <button type="button" id="btn-respawn" class="tool" data-t-label="respawn">R</button>
+        <button type="button" id="btn-mute" class="tool" data-t-label="mute">♪</button>
+        <button type="button" id="btn-help" class="tool" data-t-label="help">?</button>
+        <a class="tool wide classic-link" target="_blank" rel="noopener" data-t="classic"></a>
+      </nav>
+    </header>
+
+    <div id="timer" hidden aria-live="off"></div>
+    <button type="button" id="prompt" hidden></button>
+    <div id="toasts" aria-live="polite"></div>
+
+    <!-- The card a place opens -->
+    <section id="card" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="card-title">
+      <button type="button" class="close" data-t-label="close">✕</button>
+      <div id="card-body"></div>
+    </section>
+
+    <section id="map" class="screen dim" hidden role="dialog" aria-modal="true" aria-label="Map">
+      <div class="panel map-panel">
+        <button type="button" class="close" data-t-label="close">✕</button>
+        <h2 data-t="map"></h2>
+        <canvas id="map-canvas"></canvas>
+      </div>
+    </section>
+
+    <section id="achv" class="screen dim" hidden role="dialog" aria-modal="true" aria-labelledby="achv-title">
+      <div class="panel">
+        <button type="button" class="close" data-t-label="close">✕</button>
+        <h2 id="achv-title"><span data-t="achievements"></span> <span id="achv-count" class="mono" dir="ltr"></span></h2>
+        <ul id="achv-list" class="achv-list"></ul>
+      </div>
+    </section>
+
+    <!-- Touch controls, shown only on touch screens -->
+    <div id="touch" hidden>
+      <div id="stick" aria-hidden="true"><div id="knob"></div></div>
+      <div class="pads">
+        <button type="button" id="t-jump" data-t="touchJump"></button>
+        <button type="button" id="t-boost" data-t="touchBoost"></button>
+        <button type="button" id="t-brake" data-t="touchBrake"></button>
+        <button type="button" id="t-horn" data-t="touchHorn"></button>
+      </div>
+    </div>
+
+    <section id="fallback" class="screen" hidden>
+      <div class="panel"><p></p><a class="btn primary"></a></div>
+    </section>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
