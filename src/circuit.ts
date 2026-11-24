@@ -10,12 +10,14 @@ const KEY = 'offroad.bestLap';
 export type LapEvent =
   | { kind: 'start' }
   | { kind: 'gate'; n: number }
-  | { kind: 'finish'; time: number; best: number | null; isBest: boolean };
+  /** splits: ms since the start at gates 1..5 and the finish, for the server to check the lap is real. */
+  | { kind: 'finish'; time: number; best: number | null; isBest: boolean; splits: number[] };
 
 export function createCircuit(gates: THREE.Vector3[]) {
   let running = false;
   let next = 0;
   let t0 = 0;
+  let splits: number[] = [];
   let inside = -1; // which gate the car is currently inside, so it counts once
   let best: number | null = (() => {
     try {
@@ -49,9 +51,11 @@ export function createCircuit(gates: THREE.Vector3[]) {
         running = true;
         next = 1;
         t0 = now;
+        splits = [];
         return { kind: 'start' };
       }
       if (hit !== next) return null; // wrong gate: ignored, keep going
+      splits.push((now - t0) * 1000);
       if (hit === 0) {
         const time = now - t0;
         running = false;
@@ -65,7 +69,7 @@ export function createCircuit(gates: THREE.Vector3[]) {
             /* still shown */
           }
         }
-        return { kind: 'finish', time, best, isBest };
+        return { kind: 'finish', time, best, isBest, splits: [...splits] };
       }
       next = (next + 1) % gates.length;
       return { kind: 'gate', n: hit };

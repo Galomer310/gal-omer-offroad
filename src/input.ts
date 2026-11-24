@@ -5,7 +5,7 @@
  */
 import type { DriveInput } from './vehicle';
 
-export type Action = 'interact' | 'map' | 'respawn' | 'mute' | 'close';
+export type Action = 'interact' | 'map' | 'respawn' | 'mute' | 'close' | 'reset' | 'time';
 
 export interface Input {
   drive(): DriveInput;
@@ -81,14 +81,20 @@ export function createInput(): Input {
   };
 
   window.addEventListener('keydown', (e) => {
-    // Typing in a field (none today, but cheap insurance) is not driving.
-    if ((e.target as HTMLElement)?.closest?.('input, textarea')) return;
+    // Typing in a field (the guestbook, the lap board) is not driving, and its
+    // letters are not shortcuts. Escape still closes the card.
+    if ((e.target as HTMLElement)?.closest?.('input, textarea')) {
+      if (e.code === 'Escape') actions.push('close');
+      return;
+    }
     if (DRIVE_KEYS.has(e.code) && state.enabled) e.preventDefault();
     if (!e.repeat) {
       if (e.code === 'Enter' || e.code === 'NumpadEnter') actions.push('interact');
       if (e.code === 'KeyM') actions.push('map');
       if (e.code === 'KeyR') actions.push('respawn');
       if (e.code === 'KeyL') actions.push('mute');
+      if (e.code === 'KeyT') actions.push('reset');
+      if (e.code === 'KeyN') actions.push('time');
       if (e.code === 'Escape') actions.push('close');
     }
     down.add(e.code);

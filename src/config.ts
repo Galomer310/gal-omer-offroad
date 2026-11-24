@@ -36,7 +36,7 @@ export const WORLD_HALF = 180;
 /** Beyond this radius the ground rises into hills that keep the car in. */
 export const PLAY_RADIUS = 150;
 
-export type AreaId = 'home' | 'akeren' | 'projects' | 'career' | 'contact' | 'circuit';
+export type AreaId = 'home' | 'akeren' | 'projects' | 'career' | 'contact' | 'circuit' | 'playground' | 'guestbook';
 
 export interface Spot {
   x: number;
@@ -51,6 +51,8 @@ export const AREA_POS: Record<AreaId, Spot> = {
   career: { x: -62, z: -62 },
   contact: { x: 44, z: -74 },
   circuit: { x: 6, z: 118 },
+  playground: { x: -8, z: -96 },
+  guestbook: { x: 34, z: -36 },
 };
 
 /** Radius of the glowing ring you stop inside to open an area. */
@@ -84,11 +86,28 @@ export const VEHICLE = {
   jumpImpulse: 7.5, // multiplied by mass
   wheelRadius: 0.55,
   suspensionRest: 0.5,
-  suspensionTravel: 0.4,
-  stiffness: 32,
-  compression: 3.2,
-  relaxation: 4.2,
+  suspensionTravel: 0.5,
+  // Softer than stage 1 (32 / 3.2 / 4.2): the chassis really rolls and bounces.
+  stiffness: 24,
+  compression: 2.3,
+  relaxation: 3.0,
   frictionSlip: 2.6,
+  /** Height of the centre of mass below the chassis origin. Higher = more roll. */
+  centreOfMassY: -0.35,
+  /** Anti-roll bar on the ground (N·m per unit of lean) and its damping. */
+  antiRoll: 2400,
+  antiRollDamping: 700,
+  /** Pull back to level in the air, so it lands on its wheels. */
+  airLevel: 900,
+  airLevelDamping: 250,
+
+  /* Visual body sway on top of the physics (radians per m/s² of acceleration). */
+  swayRoll: 0.017,
+  swayPitch: 0.011,
+  swayMaxRoll: 0.2,
+  swayMaxPitch: 0.11,
+  swaySpring: 90, // stiffness of the sway spring
+  swayDamping: 6, // lower = more wobble after a jolt
 };
 
 /* ------------------------------------------------------------------ links --- */
@@ -99,6 +118,14 @@ export const VEHICLE = {
  */
 export const CLASSIC_URL: string =
   import.meta.env.VITE_CLASSIC_URL ?? (import.meta.env.DEV ? 'http://localhost:5173' : '');
+
+/**
+ * The guestbook and lap-board API (server/). Set VITE_API_URL when deploying;
+ * in development it points at `npm run dev` in server/. Empty means those
+ * features say "offline" and everything else works as before.
+ */
+export const API_URL: string =
+  import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? 'http://localhost:8790' : '');
 
 export const LINKS = {
   email: 'galomer6708@gmail.com',

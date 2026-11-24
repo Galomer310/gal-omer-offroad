@@ -217,3 +217,31 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- guestbook and lap board ---------- */
+.social { margin-top: 14px; display: grid; gap: 14px; }
+.social h3 { margin: 6px 0 0; color: var(--navy); font-size: 16px; }
+.social-form { display: grid; gap: 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.social-form label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.social-form input, .social-form textarea {
+  font: 400 15px 'Rubik', sans-serif; color: var(--ink); background: #fff;
+  border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; resize: vertical; min-height: 40px;
+}
+.social-form input:focus-visible, .social-form textarea:focus-visible { outline: 3px solid var(--ring); outline-offset: 1px; border-color: transparent; }
+.social-form .btn { justify-self: start; }
+.social-form .status { margin: 0; font-size: 13.5px; color: var(--accent); min-height: 1.2em; }
+.social-form .hint { margin: 0; }
+.social-form .k { font-size: 10.5px; letter-spacing: 0.1em; color: var(--accent); }
+.messages, .laps { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.messages li { background: var(--paper); border-radius: 10px; padding: 9px 12px; display: grid; gap: 2px; }
+.messages li b { color: var(--navy); font-size: 14px; }
+.messages li span { line-height: 1.45; }
+.messages li time { font-size: 11.5px; color: var(--muted); }
+.laps { counter-reset: place; }
+.laps li { counter-increment: place; display: flex; justify-content: space-between; gap: 10px; padding: 7px 10px; border-radius: 8px; background: var(--paper); }
+.laps li::before { content: counter(place) '.'; color: var(--muted); font: 500 13px 'JetBrains Mono', monospace; min-width: 2ch; }
+.laps li span { flex: 1; }
+.laps li b { color: var(--navy); }
+.messages li.muted, .laps li.muted { background: transparent; color: var(--muted); padding-inline: 0; }
+.laps li.muted::before { content: none; }
+.btn:disabled { opacity: 0.45; cursor: default; filter: none; }

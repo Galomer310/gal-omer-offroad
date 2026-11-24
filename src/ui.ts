@@ -5,7 +5,7 @@
  * screen reader and selected and copied, which a 3D label cannot.
  */
 import { ACHIEVEMENTS } from './achievements';
-import type { Achievements } from './achievements';
+import type { AchievementId, Achievements } from './achievements';
 import { AREAS, entryById } from './areas';
 import type { AreaDef } from './areas';
 import { AREA_POS, CLASSIC_URL, WORLD_HALF } from './config';
@@ -38,6 +38,9 @@ export interface UIHandlers {
   onStart(): void;
   onMute(): void;
   onRespawn(): void;
+  onTime(): void;
+  onReset(): void;
+  onAchieve(id: AchievementId): void;
 }
 
 export function createUI(input: Input, achievements: Achievements, mapImage: HTMLCanvasElement, h: UIHandlers): UI {
@@ -100,6 +103,8 @@ export function createUI(input: Input, achievements: Achievements, mapImage: HTM
   $('#btn-achv').addEventListener('click', () => toggleAchievements());
   $('#btn-mute').addEventListener('click', () => h.onMute());
   $('#btn-respawn').addEventListener('click', () => h.onRespawn());
+  $('#btn-time').addEventListener('click', () => h.onTime());
+  $('#btn-reset').addEventListener('click', () => h.onReset());
   $('#btn-help').addEventListener('click', () => {
     closeAll();
     intro.hidden = false;
@@ -151,7 +156,11 @@ export function createUI(input: Input, achievements: Achievements, mapImage: HTM
         )
         .join('')}
       ${area.extra ? `<div class="extra">${area.extra(lang)}</div>` : ''}
+      ${area.mount ? '<div class="mount"></div>' : ''}
     `;
+    // Live parts (the guestbook, the lap board) fill themselves in after the card is drawn.
+    const mountPoint = cardBody.querySelector<HTMLElement>('.mount');
+    if (area.mount && mountPoint) area.mount(mountPoint, { achieve: h.onAchieve });
   }
 
   function openCard(area: AreaDef) {
