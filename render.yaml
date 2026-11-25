@@ -1,0 +1,55 @@
+# Render Blueprint: the site and its small API, from this one repo.
+# In Render: New → Blueprint → this repository. See DEPLOY.md first.
+services:
+  # The site itself: static files, always up on the free plan (no sleeping).
+  - type: web
+    runtime: static
+    name: gal-omer-offroad
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      # Baked into the build (Vite). After changing one: Manual Deploy →
+      # "Clear build cache & deploy", or the old value stays in the site.
+      - key: VITE_API_URL
+        value: https://gal-omer-offroad-api.onrender.com
+      - key: VITE_CLASSIC_URL
+        sync: false # the classic portfolio's address, once it is live
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      # Hashed file names never change content: cache them for a year.
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+
+  # The guestbook and lap board API. Sleeps after 15 idle minutes on the free
+  # plan; the site says "waking the server" meanwhile and nothing else waits.
+  - type: web
+    runtime: node
+    name: gal-omer-offroad-api
+    rootDir: server
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # Neon connection string; set it in the dashboard, never in this file
+      - key: IP_SALT
+        generateValue: true # Render makes a random secret; nobody needs to know it
+      - key: ADMIN_TOKEN
+        generateValue: true # read it in the dashboard when you need to delete a message
+      - key: ALLOWED_ORIGINS
+        value: https://gal-omer-offroad.onrender.com
+      - key: BLOCKED_WORDS
+        sync: false

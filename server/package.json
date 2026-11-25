@@ -1,0 +1,22 @@
+{
+  "name": "gal-omer-offroad-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Guestbook and daily lap board for gal-omer-offroad.",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "express": "5.3.0",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.6.0"
+  }
+}

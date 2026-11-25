@@ -4,7 +4,7 @@
  * Static things get a fixed collider; the barrels and crates are real bodies.
  */
 import * as THREE from 'three';
-import RAPIER from '@dimforge/rapier3d-compat';
+import RAPIER from '@dimforge/rapier3d';
 import { AREA_POS, AREA_RING, CIRCUIT, COLORS, PLAY_RADIUS, SPAWN, SUMMIT } from './config';
 import type { AreaId, Spot } from './config';
 import { AREAS, entryById } from './areas';
@@ -134,8 +134,8 @@ export function buildProps(world: RAPIER.World): Props {
     place(sign, h.x, h.z + 14, Math.PI);
 
     const post = new THREE.Group();
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 5.4, 8), M.wood);
-    pole.position.y = 2.7;
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 7, 8), M.wood);
+    pole.position.y = 3.5;
     post.add(pole);
     AREAS.filter((a) => a.id !== 'home').forEach((a, i) => {
       const p = AREA_POS[a.id];
@@ -147,17 +147,17 @@ export function buildProps(world: RAPIER.World): Props {
       tip.rotation.z = -Math.PI / 2;
       tip.position.x = 2.65;
       arm.add(plank, tip);
-      arm.position.y = 2.4 + i * 0.55;
+      arm.position.y = 2.3 + i * 0.85; // spaced so six labels do not overlap
       arm.rotation.y = ang;
       post.add(arm);
       // Name the destination at the arrow's tip. A rotation of `ang` turns +x
       // into (cos, 0, −sin).
       const tag = sprite(a.title, { height: 0.55 });
-      tag.position.set(h.x + 7 + Math.cos(ang) * 3.4, heightAt(h.x + 7, h.z - 4) + 2.65 + i * 0.55, h.z - 4 - Math.sin(ang) * 3.4);
+      tag.position.set(h.x + 7 + Math.cos(ang) * 3.4, heightAt(h.x + 7, h.z - 4) + 2.55 + i * 0.85, h.z - 4 - Math.sin(ang) * 3.4);
       group.add(tag);
     });
     place(post, h.x + 7, h.z - 4);
-    fixed(RAPIER.ColliderDesc.cylinder(2.7, 0.25), h.x + 7, 2.7, h.z - 4);
+    fixed(RAPIER.ColliderDesc.cylinder(3.5, 0.25), h.x + 7, 3.5, h.z - 4);
   }
 
   /* --- A. Keren Psagot: a compound, one building per system -------------- */

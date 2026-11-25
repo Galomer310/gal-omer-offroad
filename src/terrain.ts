@@ -4,7 +4,7 @@
  * the sand is.
  */
 import * as THREE from 'three';
-import RAPIER from '@dimforge/rapier3d-compat';
+import RAPIER from '@dimforge/rapier3d';
 import { AREA_POS, AREA_RING, CIRCUIT, COLORS, PLAY_RADIUS, SUMMIT, WORLD_HALF } from './config';
 
 const SEGMENTS = 180; // 2 m between vertices

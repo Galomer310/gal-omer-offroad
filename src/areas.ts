@@ -9,6 +9,8 @@ import { about } from './content/about';
 import { projects } from './content/projects';
 import type { Bilingual, Entry, Lang } from './content/types';
 import { ui } from './i18n';
+import type { AchievementId } from './achievements';
+import { mountGuestbook, mountLapBoard } from './social';
 
 export interface AreaDef {
   id: AreaId;
@@ -19,6 +21,8 @@ export interface AreaDef {
   entries: string[];
   /** Extra HTML at the end of the card (links, downloads). */
   extra?: (lang: Lang) => string;
+  /** Live content (forms, data from the server), mounted after the card is drawn. */
+  mount?: (root: HTMLElement, hooks: { achieve: (id: AchievementId) => void }) => void;
 }
 
 const all: Entry[] = [...about, ...projects];
@@ -90,8 +94,28 @@ export const AREAS: AreaDef[] = [
     id: 'circuit',
     title: { en: 'The circuit', he: 'המסלול' },
     lead: {
-      en: 'Drive through the start gate, pass the six gates in order, and come back. Your best time stays in this browser.',
-      he: 'עברו בשער ההתחלה, עברו את ששת השערים לפי הסדר, וחזרו. השיא שלכם נשמר בדפדפן הזה.',
+      en: 'Drive through the start gate, pass the six gates in order, and come back. Then stop here to put your time on today’s board.',
+      he: 'עברו בשער ההתחלה, עברו את ששת השערים לפי הסדר, וחזרו. אחר כך עצרו כאן כדי להעלות את הזמן ללוח של היום.',
+    },
+    entries: [],
+    mount: (root, hooks) => mountLapBoard(root, () => hooks.achieve('board')),
+  },
+  {
+    id: 'guestbook',
+    title: { en: 'Guestbook', he: 'ספר אורחים' },
+    lead: {
+      en: 'Leave a line for me and for whoever drives by next. The newest notes are pinned to the board here.',
+      he: 'השאירו שורה בשבילי ובשביל מי שיעבור כאן אחריכם. ההודעות החדשות תלויות על הלוח כאן.',
+    },
+    entries: [],
+    mount: (root, hooks) => mountGuestbook(root, () => hooks.achieve('guest')),
+  },
+  {
+    id: 'playground',
+    title: { en: 'The playground', he: 'מגרש המשחקים' },
+    lead: {
+      en: 'Nothing to read here: bowling pins, a goal and a wall of cubes, all for knocking over. Press T anywhere to put everything back.',
+      he: 'אין כאן מה לקרוא: פיני באולינג, שער וקיר של קוביות, הכל כדי להפיל. לחצו T בכל מקום כדי להחזיר הכל למקום.',
     },
     entries: [],
   },
