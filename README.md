@@ -16,6 +16,14 @@ npm run dev                  # the API, http://localhost:8790 (in-memory databas
 npm test                     # API tests, no database to install
 ```
 
+Music check in a real (headless) Edge or Chrome: starts the game, cycles the
+four styles with P and measures the sound that comes out.
+
+```sh
+npm run test:music                              # the live site
+npm run test:music -- http://localhost:5190/    # local (run the API too)
+```
+
 Without the API running the site still works; the guestbook and lap board
 say "offline". Deploying: see [DEPLOY.md](DEPLOY.md) (Render Blueprint + Neon).
 
