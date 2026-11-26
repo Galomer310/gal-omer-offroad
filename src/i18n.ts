@@ -63,6 +63,7 @@ export const ui = {
   help: { en: 'Help', he: 'עזרה' },
   respawn: { en: 'Respawn', he: 'חזרה לנקודה' },
   timeOfDay: { en: 'Time of day', he: 'שעת היום' },
+  musicStyle: { en: 'Music style', he: 'סגנון מוזיקה' },
   resetToys: { en: 'Put things back', he: 'להחזיר למקום' },
   unlocked: { en: 'Achievement unlocked', he: 'הישג חדש' },
   youAreHere: { en: 'You', he: 'אתם' },
@@ -97,6 +98,7 @@ export const keyHelp: [string, Bilingual][] = [
   ['H', { en: 'Horn', he: 'צופר' }],
   ['N', { en: 'Time of day: sunrise, noon, sunset', he: 'שעת היום: זריחה, צהריים, שקיעה' }],
   ['T', { en: 'Put the knocked-over things back', he: 'להחזיר למקום את מה שהופל' }],
-  ['L', { en: 'Sound on / off', he: 'צליל פועל / כבוי' }],
+  ['P', { en: 'Music style: dawn, lo-fi, night road, caravan', he: 'סגנון מוזיקה: שחר, לו-פיי, כביש לילה, שיירה' }],
+  ['L', { en: 'Music on / off', he: 'מוזיקה פועלת / כבויה' }],
   ['Mouse drag / wheel', { en: 'Look around / zoom', he: 'להסתכל מסביב / זום' }],
 ];

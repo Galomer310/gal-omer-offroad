@@ -5,7 +5,7 @@
  */
 import type { DriveInput } from './vehicle';
 
-export type Action = 'interact' | 'map' | 'respawn' | 'mute' | 'close' | 'reset' | 'time';
+export type Action = 'interact' | 'map' | 'respawn' | 'mute' | 'close' | 'reset' | 'time' | 'music';
 
 export interface Input {
   drive(): DriveInput;
@@ -95,6 +95,7 @@ export function createInput(): Input {
       if (e.code === 'KeyL') actions.push('mute');
       if (e.code === 'KeyT') actions.push('reset');
       if (e.code === 'KeyN') actions.push('time');
+      if (e.code === 'KeyP') actions.push('music');
       if (e.code === 'Escape') actions.push('close');
     }
     down.add(e.code);

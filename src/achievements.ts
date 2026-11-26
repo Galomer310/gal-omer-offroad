@@ -7,7 +7,7 @@ import type { Bilingual } from './content/types';
 export type AchievementId =
   | 'drive' | 'airtime' | 'bigair' | 'horn' | 'visit-one' | 'visit-all'
   | 'lap' | 'fast-lap' | 'knock' | 'summit' | 'map'
-  | 'strike' | 'goal' | 'demolition' | 'time' | 'guest' | 'board';
+  | 'strike' | 'goal' | 'demolition' | 'time' | 'guest' | 'board' | 'dj';
 
 export interface Achievement {
   id: AchievementId;
@@ -33,6 +33,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'time', title: { en: 'Golden hour', he: 'שעת הזהב' }, how: { en: 'Change the time of day (N)', he: 'לשנות את שעת היום (N)' } },
   { id: 'guest', title: { en: 'Guest', he: 'אורח' }, how: { en: 'Leave a message in the guestbook', he: 'להשאיר הודעה בספר האורחים' } },
   { id: 'board', title: { en: 'On the board', he: 'על הלוח' }, how: { en: 'Put a lap time on today’s board', he: 'להעלות זמן הקפה ללוח של היום' } },
+  { id: 'dj', title: { en: 'DJ', he: 'די-ג׳יי' }, how: { en: 'Listen to all four music styles (P)', he: 'להאזין לכל ארבעת סגנונות המוזיקה (P)' } },
 ];
 
 const KEY = 'offroad.achievements';

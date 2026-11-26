@@ -1,17 +1,18 @@
 /**
- * Sound, all synthesised with the Web Audio API: no audio files, so nothing to
- * download and no licences.
- *
- * Background music instead of an engine (Gal's call): a soft generative piece
- * in D major. A pad holds four chords, a quiet bass follows the roots, and a
- * slow melody wanders over the pentatonic scale, so no note can clash. It never
- * repeats exactly, which keeps it from becoming a loop you notice. Speed only
- * brightens the sound slightly, so the drive still feels like motion.
- *
- * Effects stay: horn, landing thud, achievement chime. Starts only after a
+ * Sound: the background music (four styles, see music.ts) and the effects —
+ * horn, landing thud, achievement chime. All synthesised with Web Audio, so
+ * there is nothing to download and nothing licensed. Starts only after a
  * click, as browsers require.
+ *
+ * Switching styles crossfades: the current style fades out over half a
+ * second while the next one is lined up to start on a fresh bar.
  */
-const KEY = 'offroad.muted';
+import type { Bilingual } from './content/types';
+import { STYLES, buildMusic, stepSeconds, voice } from './music';
+import type { MusicGraph, StyleRun } from './music';
+
+const MUTE_KEY = 'offroad.muted';
+const STYLE_KEY = 'offroad.music';
 
 export interface Audio {
   start(): void;
@@ -22,95 +23,57 @@ export interface Audio {
   chime(): void;
   toggleMute(): boolean;
   muted(): boolean;
+  /** Move to the next music style; returns its name. */
+  nextStyle(): Bilingual;
+  styleIndex(): number;
 }
 
-const midi = (n: number) => 440 * 2 ** ((n - 69) / 12);
-
-/* D major: Dmaj9, Bm7, Gmaj7, A6sus, as MIDI notes (pad voicing, bass root). */
-const CHORDS: { pad: number[]; bass: number }[] = [
-  { pad: [62, 66, 69, 73, 76], bass: 38 },
-  { pad: [59, 62, 66, 69, 74], bass: 35 },
-  { pad: [55, 59, 62, 66, 71], bass: 31 },
-  { pad: [57, 62, 64, 66, 69], bass: 33 },
-];
-/** D major pentatonic over two octaves: D E F# A B. */
-const SCALE = [62, 64, 66, 69, 71, 74, 76, 78, 81, 83];
-const BEAT = 60 / 66; // 66 bpm
-const BEATS_PER_CHORD = 8;
+const read = (key: string) => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+const write = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* not essential */
+  }
+};
 
 export function createAudio(): Audio {
   let ctx: AudioContext | null = null;
   let master: GainNode;
-  let musicBus: GainNode;
-  let musicFilter: BiquadFilterNode;
-  let echoIn: GainNode;
   let hornGain: GainNode;
-  let nextBeat = 0;
-  let beat = 0;
-  let melodyIdx = 3;
-  let muted = (() => {
-    try {
-      return localStorage.getItem(KEY) === '1';
-    } catch {
-      return false;
-    }
-  })();
+  let graph: MusicGraph;
+  let run: StyleRun;
+  let muted = read(MUTE_KEY) === '1';
+  let style = Math.max(0, Math.min(STYLES.length - 1, Number(read(STYLE_KEY) ?? 0) || 0));
+  let n = 0;
+  let nextStep = 0;
+  let switching = false;
 
   const now = () => ctx!.currentTime;
+  const MUSIC_LEVEL = 0.9;
 
-  /** A soft reverb: an impulse response of decaying noise. */
-  const makeReverb = (c: AudioContext) => {
-    const len = Math.floor(c.sampleRate * 3.2);
-    const ir = c.createBuffer(2, len, c.sampleRate);
-    for (let ch = 0; ch < 2; ch++) {
-      const d = ir.getChannelData(ch);
-      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 2.6;
-    }
-    const conv = c.createConvolver();
-    conv.buffer = ir;
-    return conv;
-  };
-
-  /** One voice with an attack/release envelope, routed to `dest`. */
-  const voice = (
-    freq: number, t0: number, dur: number, peak: number, dest: AudioNode,
-    type: OscillatorType = 'sine', attack = 0.02, release = 0.8,
-  ) => {
-    const o = ctx!.createOscillator();
-    const g = ctx!.createGain();
-    o.type = type;
-    o.frequency.value = freq;
-    // A touch of detune so stacked pad voices shimmer instead of buzzing.
-    o.detune.value = (Math.random() - 0.5) * 8;
-    g.gain.setValueAtTime(0, t0);
-    g.gain.linearRampToValueAtTime(peak, t0 + attack);
-    g.gain.setValueAtTime(peak, t0 + Math.max(attack, dur - release));
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    o.connect(g).connect(dest);
-    o.start(t0);
-    o.stop(t0 + dur + 0.05);
-  };
-
-  /** Schedule music a little ahead of time, so timing never depends on frame rate. */
+  /** Schedule a little ahead, so timing never depends on the frame rate. */
   const schedule = () => {
-    if (!ctx) return;
-    while (nextBeat < now() + 0.6) {
-      const t = nextBeat;
-      const chord = CHORDS[Math.floor(beat / BEATS_PER_CHORD) % CHORDS.length];
-      if (beat % BEATS_PER_CHORD === 0) {
-        const len = BEAT * BEATS_PER_CHORD + 1.2; // overlap the next chord a little
-        for (const n of chord.pad) voice(midi(n), t, len, 0.035, musicBus, 'triangle', 1.6, 2.2);
-        voice(midi(chord.bass), t, len, 0.07, musicBus, 'sine', 0.4, 1.5);
-      }
-      // Melody: a random walk on the scale, resting about half the time.
-      if (Math.random() < 0.48) {
-        melodyIdx = Math.max(0, Math.min(SCALE.length - 1, melodyIdx + [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)]));
-        const dur = BEAT * (Math.random() < 0.3 ? 2 : 1) + 0.6;
-        voice(midi(SCALE[melodyIdx]), t, dur, 0.05, echoIn, 'triangle', 0.01, dur - 0.05);
-      }
-      nextBeat += BEAT;
-      beat++;
+    if (!ctx || switching) return;
+    const s = stepSeconds(STYLES[style]);
+    while (nextStep < now() + 0.6) {
+      run.step(graph.kit, nextStep, n, s);
+      nextStep += s;
+      n++;
     }
+  };
+
+  /** Point the echo at the new tempo and start the style from its first step. */
+  const begin = (at: number) => {
+    run = STYLES[style].create();
+    n = 0;
+    nextStep = at;
   };
 
   return {
@@ -122,30 +85,9 @@ export function createAudio(): Audio {
       const comp = ctx.createDynamicsCompressor();
       master.connect(comp).connect(ctx.destination);
 
-      // Music: everything → low-pass (brightened by speed) → dry + reverb.
-      const reverb = makeReverb(ctx);
-      const wet = ctx.createGain();
-      wet.gain.value = 0.45;
-      musicFilter = ctx.createBiquadFilter();
-      musicFilter.type = 'lowpass';
-      musicFilter.frequency.value = 1400;
-      musicFilter.Q.value = 0.4;
-      musicBus = ctx.createGain();
-      musicBus.gain.value = 0.9;
-      musicBus.connect(musicFilter);
-      musicFilter.connect(master);
-      musicFilter.connect(reverb).connect(wet).connect(master);
-
-      // The melody also goes through an echo (dotted eighth, three repeats or so).
-      echoIn = ctx.createGain();
-      const delay = ctx.createDelay(2);
-      delay.delayTime.value = BEAT * 0.75;
-      const fb = ctx.createGain();
-      fb.gain.value = 0.32;
-      echoIn.connect(musicBus);
-      echoIn.connect(delay);
-      delay.connect(fb).connect(delay);
-      delay.connect(musicBus);
+      graph = buildMusic(ctx, master, stepSeconds(STYLES[style]) * 1.5);
+      graph.bus.gain.value = MUSIC_LEVEL;
+      begin(now() + 0.2);
 
       // Horn: two square waves a third apart.
       hornGain = ctx.createGain();
@@ -162,20 +104,46 @@ export function createAudio(): Audio {
       }
       hf.connect(hornGain).connect(master);
 
-      nextBeat = now() + 0.2;
       schedule();
       window.setInterval(schedule, 150);
-      // Pause the music when the tab is hidden; resume where it was.
+      // Pause with the tab; resume from where it was.
       document.addEventListener('visibilitychange', () => {
         if (!ctx) return;
         if (document.hidden) void ctx.suspend();
-        else void ctx.resume().then(() => (nextBeat = Math.max(nextBeat, now() + 0.1)));
+        else void ctx.resume().then(() => (nextStep = Math.max(nextStep, now() + 0.1)));
       });
     },
+    nextStyle() {
+      style = (style + 1) % STYLES.length;
+      write(STYLE_KEY, String(style));
+      if (ctx && !switching) {
+        // Fade the old style out, then start the new one on a fresh bar.
+        switching = true;
+        const t = now();
+        graph.bus.gain.cancelScheduledValues(t);
+        graph.bus.gain.setValueAtTime(graph.bus.gain.value, t);
+        graph.bus.gain.linearRampToValueAtTime(0, t + 0.5);
+        window.setTimeout(() => {
+          if (!ctx) return;
+          // Re-tune the echo to the new tempo by rebuilding the graph. The old
+          // one has faded out; disconnect it once its reverb tail is gone.
+          const old = graph;
+          window.setTimeout(() => old.dispose(), 4000);
+          graph = buildMusic(ctx, master, stepSeconds(STYLES[style]) * 1.5);
+          graph.bus.gain.setValueAtTime(0, now());
+          graph.bus.gain.linearRampToValueAtTime(MUSIC_LEVEL, now() + 0.6);
+          begin(now() + 0.05);
+          switching = false;
+          schedule();
+        }, 550);
+      }
+      return STYLES[style].name;
+    },
+    styleIndex: () => style,
     setDrive(speed) {
       if (!ctx) return;
       const s = Math.min(Math.abs(speed), 34);
-      musicFilter.frequency.setTargetAtTime(1300 + s * 55, now(), 0.4);
+      graph.filter.frequency.setTargetAtTime(1500 + s * 60, now(), 0.4);
     },
     setHorn(on) {
       if (!ctx) return;
@@ -199,15 +167,12 @@ export function createAudio(): Audio {
     },
     chime() {
       if (!ctx) return;
-      [74, 78, 81].forEach((n, i) => voice(midi(n), now() + i * 0.09, 0.55, 0.12, master, 'sine', 0.02, 0.45));
+      const kit = graph.kit;
+      [74, 78, 81].forEach((m, i) => voice(kit, 440 * 2 ** ((m - 69) / 12), now() + i * 0.09, 0.55, 0.12, master, 'sine', 0.02, 0.45, 0));
     },
     toggleMute() {
       muted = !muted;
-      try {
-        localStorage.setItem(KEY, muted ? '1' : '0');
-      } catch {
-        /* not essential */
-      }
+      write(MUTE_KEY, muted ? '1' : '0');
       if (ctx) master.gain.setTargetAtTime(muted ? 0 : 0.85, now(), 0.05);
       return muted;
     },
