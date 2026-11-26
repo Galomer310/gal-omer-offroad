@@ -33,6 +33,7 @@ say "offline". Deploying: see [DEPLOY.md](DEPLOY.md) (Render Blueprint + Neon).
 | N | ☀ button | | time of day: sunrise, noon, sunset |
 | T | ↺ button | | put knocked-over things back |
 | H | Horn | L3 | horn |
+| P | ♫ button | | music style: Desert Dawn, Lo-fi Drive, Night Road, Caravan |
 | L | ♪ button | | music on / off |
 | mouse drag, wheel | one-finger drag | right stick | look around, zoom |
 
@@ -47,8 +48,10 @@ say "offline". Deploying: see [DEPLOY.md](DEPLOY.md) (Render Blueprint + Neon).
 - **The body sway** is a visual spring on top of the physics
   (`VEHICLE.sway*` in `src/config.ts`): the body leans out of turns and
   pitches on throttle and brake without making the physics less stable.
-- **Music** is generative and synthesised with Web Audio (`src/audio.ts`): a
-  pad, a bass and a pentatonic melody in D major, no audio files.
+- **Music** is generative and synthesised with Web Audio, no audio files:
+  four original styles in `src/music.ts` (Desert Dawn, Lo-fi Drive, Night
+  Road, Caravan), switched with a crossfade in `src/audio.ts`. Each style can
+  also render offline (`renderStyle`), which is how they are tested.
 - **Loading**: `src/main.ts` is tiny; it shows the loading screen, checks the
   browser can draw WebGL, and only then loads `src/game.ts`, three.js and the
   physics, so a browser that cannot never downloads them.

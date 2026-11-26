@@ -39,6 +39,7 @@ export interface UIHandlers {
   onMute(): void;
   onRespawn(): void;
   onTime(): void;
+  onMusic(): void;
   onReset(): void;
   onAchieve(id: AchievementId): void;
 }
@@ -104,6 +105,7 @@ export function createUI(input: Input, achievements: Achievements, mapImage: HTM
   $('#btn-mute').addEventListener('click', () => h.onMute());
   $('#btn-respawn').addEventListener('click', () => h.onRespawn());
   $('#btn-time').addEventListener('click', () => h.onTime());
+  $('#btn-music').addEventListener('click', () => h.onMusic());
   $('#btn-reset').addEventListener('click', () => h.onReset());
   $('#btn-help').addEventListener('click', () => {
     closeAll();

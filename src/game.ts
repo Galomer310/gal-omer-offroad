@@ -13,6 +13,7 @@ import type { AchievementId } from './achievements';
 import { AREAS, areaById } from './areas';
 import type { AreaDef } from './areas';
 import { createAudio } from './audio';
+import { STYLES, renderStyle } from './music';
 import { createCamera } from './camera';
 import { createCircuit, formatTime } from './circuit';
 import { AREA_POS, AREA_RING, SPAWN, SUMMIT, VEHICLE } from './config';
@@ -96,6 +97,14 @@ export async function startGame(): Promise<void> {
     chase.snap(car.group.position, car.yaw());
   };
 
+  /** Next music style, from the P key or the ♫ button. Hearing all four is the DJ achievement. */
+  const heard = new Set<number>([audio.styleIndex()]);
+  const changeMusic = () => {
+    uiApi.toast(`♫ ${t(audio.nextStyle())}`);
+    heard.add(audio.styleIndex());
+    if (heard.size === STYLES.length) unlock('dj');
+  };
+
   /** Sunrise → noon → sunset, from the N key or the ☀ button. */
   const changeTime = () => {
     uiApi.toast(`☀ ${t(sky.next())}`);
@@ -113,6 +122,7 @@ export async function startGame(): Promise<void> {
     },
     onRespawn: respawn,
     onTime: () => changeTime(),
+    onMusic: () => changeMusic(),
     onReset: () => toys.reset(),
     onAchieve: (id) => unlock(id),
   });
@@ -164,6 +174,7 @@ export async function startGame(): Promise<void> {
       } else if (a === 'respawn' && !uiApi.anyOpen()) respawn();
       else if (a === 'reset') toys.reset();
       else if (a === 'time') changeTime();
+      else if (a === 'music') changeMusic();
       else if (a === 'interact' && !uiApi.anyOpen() && near) open(areaById(near));
     }
 
@@ -256,6 +267,6 @@ export async function startGame(): Promise<void> {
 
   // A handle for the automated drive test. Development builds only.
   if (import.meta.env.DEV) {
-    (window as unknown as { __offroad: unknown }).__offroad = { car, input, world, circuit, props, toys, uiApi };
+    (window as unknown as { __offroad: unknown }).__offroad = { car, input, world, circuit, props, toys, uiApi, audio, renderStyle };
   }
 }
